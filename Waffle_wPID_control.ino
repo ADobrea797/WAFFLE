@@ -7,7 +7,7 @@
 #include <PID_v1.h>  // Include the Arduino PID library
 
 // Network credentials
-const char* ssid = "XXXXX"; //Replace with network name
+const char* ssid = "XXX"; //Replace with network name
 const char* password = "XXX";//Replace with network password
 
 // Web server

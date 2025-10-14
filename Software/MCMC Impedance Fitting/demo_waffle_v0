@@ -1,0 +1,64 @@
+clear all
+close all
+clc
+
+%% Data loading 
+
+% load mat file from PsTrace experimental file
+% load CaptMCH.mat; 
+[Data]=load('CaptMCH.mat');
+semi2=Data.eis47_CH861freqs(:, [1, 5, 6]); % Trace to be fitted e.g., CH8, eis trace 47
+semi2(:, 3) = -semi2(:, 3);
+
+freq_indices=[1:61]; % select (sub)set of frequencies 
+
+%% Initialization
+circuitstring='s(R1,p(R1,E2),p(s(R1,G2),E2))';  %YA: Alex, could you add what that circuit is?  
+
+% Set initial guess for the circuit parameters (optional)
+circuitparameters=[1.27e+03,1.79e+04,1.38e-06,9.13e-01,1.79e+04,604,2,1.38e-06,9.13e-01];
+
+% Min and Max values for the circuit parameters (user-defined)
+parameter_bounds=[1 1 1e-9 1e-3 1 1e-3 1e-3 1e-9 1e-3; 1e6 1e8 1e-3 1e2 1e6 1e3 1e3 1e-3 1e2];
+
+% Different circuit models %YA: Alex, can you comment on those? or do we
+% remove the additional 2 examples
+% circuitstring='s(R1,p(R1,E2))';  
+% circuitparameters=[1.27e+03,1.79e+04,1.38e-06,9.13e-01];
+
+% circuitstring='s(R1,p(s(R1,G2),E2))';   
+% circuitparameters=[1.27e+03,1.79e+04,604,2,1.38e-06,9.13e-01];
+
+Nmc=1e4;% Number of MCMC iterations
+
+%% MCMC sampler
+[X_samples]=MCMC_fit(semi2,freq_indices,circuitstring,parameter_bounds,Nmc,circuitparameters);
+
+
+%% Display results
+
+% Display the chains for the first 5 parameters 
+figure
+for i=1:5
+subplot(5,1,i)
+plot(X_samples(i,:))
+xlabel('MCMC Iterations')
+end
+
+
+% Compute posterior mean from Markov chain 
+X_est=mean(X_samples,2);
+
+% Evaluate circuit with estimated parameters
+Z=computecircuit(X_est',circuitstring,semi2(indices,1));
+
+% Data fit
+figure
+plot(semi2(indices,2),semi2(indices,3),'rx')
+hold on
+plot(Z(:,1),Z(:,2),'bo')
+legend('Observed','fit')
+
+% Compute MSE
+MSE=mean(mean((Z-semi2(indices,[2 3])).^2))
+

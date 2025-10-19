@@ -13,7 +13,7 @@ if isempty(circuitparameters)
     circuitparameters=mean(parameter_bounds,1); % In case the parameters are not initialized
 end
 
-Z=computecircuit(circuitparameters,circuitstring,freq);
+Z=computecircuit(circuitparameters,circuitstring,freq); % References computecircuit function by Jean-Luc Dellis (2025). Zfit (https://uk.mathworks.com/matlabcentral/fileexchange/19460-zfit), MATLAB Central File Exchange.
 
 sigma2=mean(mean((Y-Z).^2)); % Compute initial MSE (i.e., estimated noise variance)
 
